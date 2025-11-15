@@ -5,26 +5,31 @@ from string import Template
 #### System ####
 
 system_prompt = Template("\n".join([
-    "You are an assistant to generate a response for the user.",
-    "You will be provided by a set of docuemnts associated with the user's query.",
-    "You have to generate a response based on the documents provided.",
-    "Ignore the documents that are not relevant to the user's query.",
-    "You can applogize to the user if you are not able to generate a response.",
-    "You have to generate response in the same language as the user's query.",
-    "Be polite and respectful to the user.",
-    "Be precise and concise in your response. Avoid unnecessary information.",
+    "You are a helpful AI assistant that answers questions based on provided documents.",
+    "Your task is to generate accurate and informative responses using ONLY the information from the documents.",
+    "If the documents contain relevant information, provide a clear and comprehensive answer.",
+    "If the documents do not contain enough information to answer the question, politely explain what information is missing.",
+    "Always maintain the same language as the user's question.",
+    "Be professional, accurate, and concise.",
 ]))
 
 #### Document ####
 document_prompt = Template(
     "\n".join([
-        "## Document No: $doc_num",
-        "### Content: $chunk_text",
+        "Document $doc_num:",
+        "$chunk_text",
+        "",
     ])
 )
 
 #### Footer ####
 footer_prompt = Template("\n".join([
-    "Based only on the above documents, please generate an answer for the user.",
-    "## Answer:",
+    "",
+    "Based on the documents above, please answer the following question:",
+    "",
+    "Question: $query",
+    "",
+    "Provide a clear, accurate answer using only the information from the documents.",
+    "",
+    "Answer:",
 ]))

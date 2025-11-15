@@ -81,10 +81,13 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
 
     asset_record = await asset_model.create_asset(asset=asset_resource)
 
+    # IMPROVED: Return both asset_id and file_id for clarity
     return JSONResponse(
             content={
                 "signal": ResponseSignal.FILE_UPLOAD_SUCCESS.value,
-                "file_id": str(asset_record.id),
+                "asset_id": str(asset_record.id),
+                "file_id": asset_record.asset_name,
+                "message": "Use 'file_id' for processing endpoint"
             }
         )
 
@@ -109,16 +112,30 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
 
     project_files_ids = {}
     if process_request.file_id:
-        asset_record = await asset_model.get_asset_record(
-            asset_project_id=project.id,
-            asset_name=process_request.file_id
-        )
+        # FIXED: Try to get by ObjectId first, then by filename
+        asset_record = None
+        
+        # Try by ObjectId first
+        try:
+            asset_record = await asset_model.get_asset_by_id(
+                asset_id=process_request.file_id
+            )
+        except Exception as e:
+            logger.debug(f"Could not find asset by ObjectId '{process_request.file_id}': {e}")
+        
+        # If not found by ObjectId, try by asset_name (filename)
+        if asset_record is None:
+            asset_record = await asset_model.get_asset_record(
+                asset_project_id=project.id,
+                asset_name=process_request.file_id
+            )
 
         if asset_record is None:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
                     "signal": ResponseSignal.FILE_ID_ERROR.value,
+                    "message": f"No file found with id or name: {process_request.file_id}"
                 }
             )
 
@@ -127,8 +144,7 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
         }
     
     else:
-        
-
+        # Process all files in the project
         project_files = await asset_model.get_all_project_assets(
             asset_project_id=project.id,
             asset_type=AssetTypeEnum.FILE.value,
