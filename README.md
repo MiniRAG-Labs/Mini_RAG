@@ -37,8 +37,6 @@ Email: hossam.alsheshtawy2000@gmail.com
 
 **Line 310 (Project Link):**
 ```markdown
-# OLD
-Project Link: [https://github.com/yourusername/mini-rag-app](https://github.com/yourusername/mini-rag-app)
 
 # NEW
 Project Link: [https://github.com/hossamfarhoud/Mini_RAG](https://github.com/hossamfarhoud/Mini_RAG)
@@ -215,49 +213,3 @@ Import the Postman collection to test all endpoints:
 [![Run in Postman](https://run.pstmn.io/button.svg)](postman/Mini-RAG-App.postman_collection.json)
 ```
 
----
-
-## 📋 Quick Checklist
-
-Before sharing your repo:
-
-- [ ] Update README.md with your GitHub username
-- [ ] Add your contact information
-- [ ] Update LICENSE with your name
-- [ ] Add repository topics on GitHub
-- [ ] Create .env from .env.example (don't commit .env!)
-- [ ] Add screenshots or demo GIF
-- [ ] Write a good repository description on GitHub
-- [ ] Add a professional profile picture on GitHub
-- [ ] Star your own repo 😄
-- [ ] Share on LinkedIn/Twitter
-
----
-
-```
-🚀 Production-ready RAG system: Upload documents, ask questions, get AI-generated answers. Built with FastAPI, OpenAI GPT-4, MongoDB, and Qdrant vector database. Multi-language support (English/Arabic).
-```
-
-
-## 📈 Next Level Features (Future)
-
-Document these as "Roadmap" in README:
-
-```markdown
-## 🗺️ Roadmap
-
-- [ ] Web UI (React/Vue frontend)
-- [ ] Conversation history (multi-turn dialogue)
-- [ ] User authentication (JWT)
-- [ ] Streaming responses
-- [ ] Support for more file types (DOCX, XLSX, HTML)
-- [ ] Hybrid search (vector + keyword)
-- [ ] Fine-tuned embeddings
-- [ ] Advanced analytics dashboard
-- [ ] API rate limiting
-- [ ] Caching layer (Redis)
-```
-
-
-
-Good luck with your project! 🍀
