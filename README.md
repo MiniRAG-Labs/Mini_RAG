@@ -34,7 +34,7 @@ git clone https://github.com/hossamfarhoud/Mini_RAG.git
 ```markdown
 # Update with your actual info
 Your Name - Hossam Farhoud
-Email: your-email@example.com
+Email: hossam.alsheshtawy2000@gmail.com
 ```
 
 **Line 310 (Project Link):**
