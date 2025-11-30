@@ -6,6 +6,7 @@ from stores.vectordb.VectorDBProviderFactory import VectorDBProviderFactory
 from stores.llm.templates.template_parser import TemplateParser
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+import asyncio
 
 app = FastAPI()
 
@@ -22,7 +23,10 @@ async def startup_span():
     )
 
     llm_provider_factory = LLMProviderFactory(settings)
-    vectordb_provider_factory = VectorDBProviderFactory(settings)
+    vectordb_provider_factory = VectorDBProviderFactory(
+        config=settings,
+        db_client=app.db_client
+    )
 
     # generation client
     app.generation_client = llm_provider_factory.create(provider=settings.GENERATION_BACKEND)
@@ -39,7 +43,12 @@ async def startup_span():
     app.vectordb_client = vectordb_provider_factory.create(
         provider=settings.VECTOR_DB_BACKEND
     )
-    app.vectordb_client.connect()
+    
+    # Handle both sync and async connect methods
+    if asyncio.iscoroutinefunction(app.vectordb_client.connect):
+        await app.vectordb_client.connect()
+    else:
+        app.vectordb_client.connect()
 
     app.template_parser = TemplateParser(
         language=settings.PRIMARY_LANG,
@@ -49,7 +58,12 @@ async def startup_span():
 
 async def shutdown_span():
     await app.db_engine.dispose()
-    app.vectordb_client.disconnect()
+    
+    # Handle both sync and async disconnect methods
+    if asyncio.iscoroutinefunction(app.vectordb_client.disconnect):
+        await app.vectordb_client.disconnect()
+    else:
+        app.vectordb_client.disconnect()
 
 
 app.on_event("startup")(startup_span)
