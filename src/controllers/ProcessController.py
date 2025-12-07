@@ -6,6 +6,10 @@ from langchain_community.document_loaders import PyMuPDFLoader
 from models import ProcessingEnum
 from typing import List
 from dataclasses import dataclass
+import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class Document:
@@ -31,7 +35,10 @@ class ProcessController(BaseController):
             file_id
         )
 
+        logger.info(f"Loading file: {file_path}")
+
         if not os.path.exists(file_path):
+            logger.error(f"File does not exist: {file_path}")
             return None
 
         if file_ext == ProcessingEnum.TXT.value:
@@ -40,15 +47,20 @@ class ProcessController(BaseController):
         if file_ext == ProcessingEnum.PDF.value:
             return PyMuPDFLoader(file_path)
         
+        logger.error(f"Unsupported file extension: {file_ext}")
         return None
 
     def get_file_content(self, file_id: str):
 
-        loader = self.get_file_loader(file_id=file_id)
-        if loader:
-            return loader.load()
-
-        return None
+        try:
+            loader = self.get_file_loader(file_id=file_id)
+            if loader:
+                return loader.load()
+            return None
+        except Exception as e:
+            logger.error(f"Error loading file {file_id}: {str(e)}")
+            traceback.print_exc()
+            return None
 
     def process_file_content(self, file_content: list, file_id: str,
                             chunk_size: int=100, overlap_size: int=20):
@@ -103,6 +115,3 @@ class ProcessController(BaseController):
             ))
 
         return chunks
-
-
-    
