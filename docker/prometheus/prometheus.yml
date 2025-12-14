@@ -6,7 +6,8 @@ scrape_configs:
 
   - job_name: 'fastapi'
     static_configs:
-      - targets: ['fastapi:8000']
+      # Use host.docker.internal to connect to FastAPI running locally on Windows
+      - targets: ['host.docker.internal:8000']
     metrics_path: '/metrics'
 
   - job_name: 'node-exporter'
@@ -24,5 +25,6 @@ scrape_configs:
 
   - job_name: 'postgres'
     static_configs:
+      # Use host.docker.internal if postgres-exporter is not running in Docker
+      # Or start postgres-exporter container
       - targets: ['postgres-exporter:9187']
-      
