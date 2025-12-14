@@ -62,6 +62,11 @@ class PGVectorProvider(VectorDBInterface):
         return records
     
     async def get_collection_info(self, collection_name: str) -> dict:
+        # First check if collection exists
+        is_existed = await self.is_collection_existed(collection_name=collection_name)
+        if not is_existed:
+            return None
+        
         async with self.db_client() as session:
             async with session.begin():
                 
@@ -74,11 +79,12 @@ class PGVectorProvider(VectorDBInterface):
                 count_sql = sql_text(f'SELECT COUNT(*) FROM {collection_name}')
 
                 table_info = await session.execute(table_info_sql, {"collection_name": collection_name})
-                record_count = await session.execute(count_sql)
-
                 table_data = table_info.fetchone()
+                
                 if not table_data:
                     return None
+                
+                record_count = await session.execute(count_sql)
                 
                 return {
                     "table_info": {
@@ -112,22 +118,26 @@ class PGVectorProvider(VectorDBInterface):
         is_collection_existed = await self.is_collection_existed(collection_name=collection_name)
         if not is_collection_existed:
             self.logger.info(f"Creating collection: {collection_name}")
-            async with self.db_client() as session:
-                async with session.begin():
-                    create_sql = sql_text(
-                        f'CREATE TABLE {collection_name} ('
-                            f'{PgVectorTableSchemeEnums.ID.value} bigserial PRIMARY KEY,'
-                            f'{PgVectorTableSchemeEnums.TEXT.value} text, '
-                            f'{PgVectorTableSchemeEnums.VECTOR.value} vector({embedding_size}), '
-                            f'{PgVectorTableSchemeEnums.METADATA.value} jsonb DEFAULT \'{{}}\', '
-                            f'{PgVectorTableSchemeEnums.CHUNK_ID.value} integer, '
-                            f'FOREIGN KEY ({PgVectorTableSchemeEnums.CHUNK_ID.value}) REFERENCES chunks(chunk_id)'
-                        ')'
-                    )
-                    await session.execute(create_sql)
-                    await session.commit()
-            
-            return True
+            try:
+                async with self.db_client() as session:
+                    async with session.begin():
+                        # Create table without foreign key to avoid dependency issues
+                        create_sql = sql_text(
+                            f'CREATE TABLE {collection_name} ('
+                                f'{PgVectorTableSchemeEnums.ID.value} bigserial PRIMARY KEY,'
+                                f'{PgVectorTableSchemeEnums.TEXT.value} text, '
+                                f'{PgVectorTableSchemeEnums.VECTOR.value} vector({embedding_size}), '
+                                f'{PgVectorTableSchemeEnums.METADATA.value} jsonb DEFAULT \'{{}}\', '
+                                f'{PgVectorTableSchemeEnums.CHUNK_ID.value} integer'
+                            ')'
+                        )
+                        await session.execute(create_sql)
+                        await session.commit()
+                self.logger.info(f"Successfully created collection: {collection_name}")
+                return True
+            except Exception as e:
+                self.logger.error(f"Failed to create collection {collection_name}: {str(e)}")
+                raise e
 
         return False
     

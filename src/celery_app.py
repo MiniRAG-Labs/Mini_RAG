@@ -12,7 +12,8 @@ settings = get_settings()
 async def get_setup_utils():
     settings = get_settings()
 
-    postgres_conn = f"postgresql+asyncpg://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_MAIN_DATABASE}"
+    # Fixed: Use correct settings names (POSTGRES_USER and POSTGRES_DB)
+    postgres_conn = f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 
     db_engine = create_async_engine(postgres_conn)
     db_client = sessionmaker(
@@ -53,8 +54,7 @@ celery_app = Celery(
     include=[
         "tasks.file_processing",
         "tasks.data_indexing",
-        "tasks.process_workflow",
-        "tasks.maintenance",
+        "tasks.process_workflow"
     ]
 )
 
@@ -86,21 +86,8 @@ celery_app.conf.update(
     worker_cancel_long_running_tasks_on_connection_loss=True,
 
     task_routes={
-        "tasks.file_processing.process_project_files": {"queue": "file_processing"},
-        "tasks.data_indexing.index_data_content": {"queue": "data_indexing"},
-        "tasks.process_workflow.process_and_push_workflow": {"queue": "file_processing"},
-        "tasks.maintenance.clean_celery_executions_table": {"queue": "default"},
-    },
-
-    beat_schedule={
-        'cleanup-old-task-records': {
-            'task': "tasks.maintenance.clean_celery_executions_table",
-            'schedule': 10,
-            'args': ()
-        }
-    },
-
-    timezone='UTC',
+        "tasks.file_processing.process_project_files": {"queue": "file_processing"}
+    }
 
 )
 

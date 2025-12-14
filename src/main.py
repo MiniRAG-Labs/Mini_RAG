@@ -7,6 +7,12 @@ from stores.llm.templates.template_parser import TemplateParser
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from prometheus_fastapi_instrumentator import Instrumentator
+from models.db_schemes.minirag.schemes.minirag_base import SQLAlchemyBase
+# Import all models so they register with SQLAlchemyBase
+from models.db_schemes.minirag.schemes.project import Project
+from models.db_schemes.minirag.schemes.asset import Asset
+from models.db_schemes.minirag.schemes.datachunk import DataChunk
+from models.db_schemes.minirag.schemes.celery_task_execution import CeleryTaskExecution
 import asyncio
 
 app = FastAPI()
@@ -26,6 +32,10 @@ async def startup_span():
     app.db_client = sessionmaker(
         app.db_engine, class_=AsyncSession, expire_on_commit=False
     )
+
+    # Create all database tables
+    async with app.db_engine.begin() as conn:
+        await conn.run_sync(SQLAlchemyBase.metadata.create_all)
 
     llm_provider_factory = LLMProviderFactory(settings)
     vectordb_provider_factory = VectorDBProviderFactory(
